@@ -7,7 +7,6 @@ class RecipesCache {
 
   RecipesCache(this._prefs);
 
-  /// Сохранение списка рецептов в локальное хранилище.
   Future<void> save(List<Recipe> recipes) async {
     try {
       final encoded = jsonEncode(
@@ -15,13 +14,9 @@ class RecipesCache {
       );
 
       await _prefs.setString("recipes_cache", encoded);
-    } catch (_) {
-      // Если по какой-то причине сериализация упала — ничего страшного,
-      // просто не кэшируем. Офлайн будет пустым.
-    }
+    } catch (_) {}
   }
 
-  /// Загрузка кэша. Если данных нет — возвращаем пустой список.
   List<Recipe> load() {
     try {
       final raw = _prefs.getString("recipes_cache");
@@ -34,8 +29,6 @@ class RecipesCache {
           .map((item) => Recipe.fromJson(item as Map<String, dynamic>))
           .toList();
     } catch (_) {
-      // Если кэш повреждён — лучше вернуть пустой список,
-      // чем крашить приложение.
       return [];
     }
   }

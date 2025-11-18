@@ -28,7 +28,6 @@ class RecipesApi {
       }
       throw Exception('Некорректный формат API');
     } on DioException catch (e) {
-      // Нормальная человекочитаемая ошибка
       final message = switch (e.type) {
         DioExceptionType.connectionTimeout =>
           "Превышено время ожидания соединения",

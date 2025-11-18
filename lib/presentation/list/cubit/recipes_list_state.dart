@@ -4,8 +4,8 @@ sealed class RecipesListState {
   const RecipesListState();
 }
 
-final class RecipedLoading extends RecipesListState {
-  const RecipedLoading();
+final class RecipesLoading extends RecipesListState {
+  const RecipesLoading();
 }
 
 final class RecipedError extends RecipesListState {
@@ -15,9 +15,9 @@ final class RecipedError extends RecipesListState {
 }
 
 final class RecipesOffline extends RecipesListState {
-  final List<Recipe> recipe;
+  final List<Recipe> recipes;
 
-  const RecipesOffline(this.recipe);
+  const RecipesOffline(this.recipes);
 }
 
 final class RecipesEmpty extends RecipesListState {

@@ -11,7 +11,7 @@ class RecipesListCubit extends Cubit<RecipesListState> {
   static const int pageSize = 10;
 
   String _searchQuery = '';
-  bool _filterWithImages = false;
+  final bool _filterWithImages = false;
   int? _filterMaxMinutes;
 
   RecipesListCubit({
@@ -19,10 +19,10 @@ class RecipesListCubit extends Cubit<RecipesListState> {
     required RecipesInteractor interactor,
   }) : _repository = repository,
        _interactor = interactor,
-       super(const RecipedLoading());
+       super(const RecipesLoading());
 
   Future<void> load() async {
-    emit(const RecipedLoading());
+    emit(const RecipesLoading());
     try {
       final data = await _repository.loadRecipes();
       _applyAndEmit(data);

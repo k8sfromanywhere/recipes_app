@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:recipes_app/data/modals/recipe.dart';
+import 'package:recipes_app/data/models/recipe.dart';
 import 'package:recipes_app/presentation/list/cubit/recipes_list_cubit.dart';
 import 'package:recipes_app/presentation/list/cubit/recipes_list_state.dart';
 import 'package:recipes_app/presentation/list/widgets/error_retry.dart';
@@ -23,7 +23,13 @@ class _RecipesListScreenState extends State<RecipesListScreen> {
 
     _scroll.addListener(() {
       final cubit = context.read<RecipesListCubit>();
-      if (_scroll.position.pixels >= _scroll.position.maxScrollExtent - 300) {
+
+      // не догружаем, если уже идёт догрузка
+      final current = cubit.state;
+      final loadingMore = current is RecipesLoaded && current.isLoadingMore;
+
+      if (!loadingMore &&
+          _scroll.position.pixels >= _scroll.position.maxScrollExtent - 250) {
         cubit.loadMore();
       }
     });
@@ -39,7 +45,7 @@ class _RecipesListScreenState extends State<RecipesListScreen> {
             RecipesLoading() => const Center(
               child: CircularProgressIndicator(),
             ),
-            RecipedError(:final message) => ErrorRetry(
+            RecipesError(:final message) => ErrorRetry(
               message: message,
               onRetry: () {
                 context.read<RecipesListCubit>().load();
@@ -78,7 +84,7 @@ class _RecipesListScreenState extends State<RecipesListScreen> {
         itemBuilder: (context, index) {
           if (index == items.length) {
             return const Padding(
-              padding: EdgeInsetsGeometry.symmetric(vertical: 16),
+              padding: EdgeInsets.symmetric(vertical: 16),
               child: Center(child: CircularProgressIndicator()),
             );
           }

@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:recipes_app/data/modals/recipe.dart';
+import 'package:recipes_app/data/models/recipe.dart';
 import 'package:recipes_app/data/repository/recipes_repository.dart';
 import 'package:recipes_app/domain/recipes_interactor.dart';
 import 'package:recipes_app/presentation/list/cubit/recipes_list_state.dart';
@@ -10,9 +10,14 @@ class RecipesListCubit extends Cubit<RecipesListState> {
 
   static const int pageSize = 10;
 
+  List<Recipe> _raw = [];
+
   String _searchQuery = '';
-  final bool _filterWithImages = false;
+  bool _filterWithImages = false;
   int? _filterMaxMinutes;
+
+  bool get filterWithImages => _filterWithImages;
+  int? get filterMaxMinutes => _filterMaxMinutes;
 
   RecipesListCubit({
     required RecipesRepository repository,
@@ -23,32 +28,53 @@ class RecipesListCubit extends Cubit<RecipesListState> {
 
   Future<void> load() async {
     emit(const RecipesLoading());
+
     try {
       final data = await _repository.loadRecipes();
-      _applyAndEmit(data);
+
+      _raw = data;
+      _repository.saveCached(data);
+
+      _applyAndEmit(_raw);
     } catch (e) {
       final cached = _repository.loadCached();
+
       if (cached.isNotEmpty) {
+        _raw = cached;
         emit(RecipesOffline(cached));
       } else {
-        emit(RecipedError(e.toString()));
+        emit(RecipesError(e.toString()));
       }
     }
   }
 
-  Future<void> refresh() async => load();
+  Future<void> refresh() async {
+    try {
+      final fresh = await _repository.loadRecipes();
+      _raw = fresh;
+      _repository.saveCached(fresh);
+
+      _applyAndEmit(_raw);
+    } catch (_) {
+      // Оставляем старые данные, просто рефреш не удался
+      _applyAndEmit(_raw);
+    }
+  }
 
   void _applyAndEmit(List<Recipe> rawList) {
     var list = _interactor.applySearch(rawList, _searchQuery);
+
     list = _interactor.applyFilters(
       list,
       onlyWithImages: _filterWithImages,
       maxMinutes: _filterMaxMinutes,
     );
+
     if (list.isEmpty) {
       emit(const RecipesEmpty());
       return;
     }
+
     final firstPage = _interactor.paginate(list, 0, pageSize);
 
     emit(
@@ -63,19 +89,22 @@ class RecipesListCubit extends Cubit<RecipesListState> {
   }
 
   void loadMore() {
-    final stateNow = state;
-    if (stateNow is! RecipesLoaded) return;
-    if (stateNow.isLastPage || stateNow.isLoadingMore) return;
-    emit(stateNow.copyWith(isLoadingMore: true));
-    final nextPage = stateNow.page + 1;
+    final current = state;
+
+    if (current is! RecipesLoaded) return;
+    if (current.isLastPage || current.isLoadingMore) return;
+
+    emit(current.copyWith(isLoadingMore: true));
+
+    final nextPage = current.page + 1;
     final nextItems = _interactor.paginate(
-      stateNow.allRecipes,
+      current.allRecipes,
       nextPage,
       pageSize,
     );
     emit(
-      stateNow.copyWith(
-        paginated: [...stateNow.paginated, ...nextItems],
+      current.copyWith(
+        paginated: [...current.paginated, ...nextItems],
         page: nextPage,
         isLastPage: nextItems.length < pageSize,
         isLoadingMore: false,
@@ -85,20 +114,22 @@ class RecipesListCubit extends Cubit<RecipesListState> {
 
   void setSearch(String query) {
     _searchQuery = query;
-    _reloadFilters();
+    _applyAndEmit(_raw);
+  }
+
+  void setFilterWithImages(bool value) {
+    _filterWithImages = value;
+    _applyAndEmit(_raw);
   }
 
   void setFilterMaxMinutes(int? minutes) {
     _filterMaxMinutes = minutes;
-    _reloadFilters();
+    _applyAndEmit(_raw);
   }
 
-  void _reloadFilters() {
-    final cached = _repository.loadCached();
-    if (cached.isEmpty) {
-      emit(const RecipesEmpty());
-    } else {
-      _applyAndEmit(cached);
-    }
+  void resetFilters() {
+    _filterWithImages = false;
+    _filterMaxMinutes = null;
+    _applyAndEmit(_raw);
   }
 }

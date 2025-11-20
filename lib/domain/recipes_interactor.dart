@@ -1,4 +1,4 @@
-import 'package:recipes_app/data/modals/recipe.dart';
+import 'package:recipes_app/data/models/recipe.dart';
 
 /// поиск, фильтры, пагинация
 class RecipesInteractor {
@@ -9,8 +9,8 @@ class RecipesInteractor {
 
     return list.where((recipe) {
       return (recipe.title ?? '').toLowerCase().contains(lower) ||
-          (recipe.ingredients_one ?? '').toLowerCase().contains(lower) ||
-          (recipe.ingredients_two ?? '').toLowerCase().contains(lower);
+          (recipe.ingredientsOne ?? '').toLowerCase().contains(lower) ||
+          (recipe.ingredientsTwo ?? '').toLowerCase().contains(lower);
     }).toList();
   }
 
@@ -28,7 +28,7 @@ class RecipesInteractor {
 
     if (maxMinutes != null) {
       filtered = filtered.where((r) {
-        final raw = r.prep_time?.trim() ?? '';
+        final raw = r.prepTime?.trim() ?? '';
         final minutes = int.tryParse(raw);
 
         return minutes != null && minutes <= maxMinutes;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
-import 'package:recipes_app/data/modals/recipe.dart';
+import 'package:recipes_app/data/models/recipe.dart';
 
 class RecipeCard extends StatelessWidget {
   final Recipe recipe;
@@ -13,7 +13,12 @@ class RecipeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        GoRouter.of(context).push("/recipe/${recipe.id}");
+        final id = recipe.id;
+        if (id == null || id.isEmpty) {
+          debugPrint("Invalid recipe id, skipping navigation");
+          return;
+        }
+        context.push('/recipe/$id');
       },
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -83,10 +88,10 @@ class RecipeCard extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(preview, maxLines: 3, overflow: TextOverflow.ellipsis),
-        if ((recipe.prep_time ?? "").isNotEmpty) ...[
+        if ((recipe.prepTime ?? "").isNotEmpty) ...[
           const SizedBox(height: 6),
           Text(
-            "Время: ${recipe.prep_time} мин",
+            "Время: ${recipe.prepTime} мин",
             style: TextStyle(color: Colors.grey.shade700),
           ),
         ],

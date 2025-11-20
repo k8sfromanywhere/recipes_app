@@ -1,4 +1,4 @@
-import 'package:recipes_app/data/modals/recipe.dart';
+import 'package:recipes_app/data/models/recipe.dart';
 
 sealed class RecipesListState {
   const RecipesListState();
@@ -8,10 +8,10 @@ final class RecipesLoading extends RecipesListState {
   const RecipesLoading();
 }
 
-final class RecipedError extends RecipesListState {
+final class RecipesError extends RecipesListState {
   final String message;
 
-  const RecipedError(this.message);
+  const RecipesError(this.message);
 }
 
 final class RecipesOffline extends RecipesListState {

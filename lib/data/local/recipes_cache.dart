@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:recipes_app/data/modals/recipe.dart';
+import 'package:recipes_app/data/models/recipe.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class RecipesCache {

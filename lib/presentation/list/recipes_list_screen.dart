@@ -54,33 +54,117 @@ class _RecipesListScreenState extends State<RecipesListScreen> {
           ),
         ],
       ),
-      body: BlocBuilder<RecipesListCubit, RecipesListState>(
-        builder: (context, state) {
-          return switch (state) {
-            RecipesLoading() => const Center(
-              child: CircularProgressIndicator(),
-            ),
-            RecipesError(:final message) => ErrorRetry(
-              message: message,
-              onRetry: () {
-                context.read<RecipesListCubit>().load();
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+            child: TextField(
+              decoration: const InputDecoration(
+                hintText: 'Поиск...',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.search),
+              ),
+              onChanged: (value) {
+                context.read<RecipesListCubit>().setSearch(value);
               },
             ),
-            RecipesOffline(:final recipes) => _buildList(
-              context,
-              recipes,
-              isOffline: true,
+          ),
+
+          // --- ФИЛЬТР ---
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.filter_list),
+                  onPressed: () {
+                    _openFilterSheet(context);
+                  },
+                ),
+              ],
             ),
-            RecipesEmpty() => const Center(child: Text('Нет рецептов')),
-            RecipesLoaded(:final paginated, :final isLoadingMore) => _buildList(
-              context,
-              paginated,
-              isLoadingMore: isLoadingMore,
+          ),
+          Expanded(
+            child: BlocBuilder<RecipesListCubit, RecipesListState>(
+              builder: (context, state) {
+                return switch (state) {
+                  RecipesLoading() => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                  RecipesError(:final message) => ErrorRetry(
+                    message: message,
+                    onRetry: () {
+                      context.read<RecipesListCubit>().load();
+                    },
+                  ),
+                  RecipesOffline(:final recipes) => _buildList(
+                    context,
+                    recipes,
+                    isOffline: true,
+                  ),
+                  RecipesEmpty() => const Center(child: Text('Нет рецептов')),
+                  RecipesLoaded(:final paginated, :final isLoadingMore) =>
+                    _buildList(
+                      context,
+                      paginated,
+                      isLoadingMore: isLoadingMore,
+                    ),
+                  // _ => const SizedBox(),
+                };
+              },
             ),
-            // _ => const SizedBox(),
-          };
-        },
+          ),
+        ],
       ),
+    );
+  }
+
+  void _openFilterSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      builder: (_) {
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Фильтр',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 16),
+
+              // фильтр: только с изображениями
+              BlocBuilder<RecipesListCubit, RecipesListState>(
+                builder: (context, state) {
+                  final cubit = context.read<RecipesListCubit>();
+                  return SwitchListTile(
+                    value: cubit.filterWithImages,
+                    onChanged: (v) {
+                      cubit.setFilterWithImages(v);
+                    },
+                    title: const Text("Только с изображениями"),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 8),
+
+              // сброс
+              ElevatedButton(
+                onPressed: () {
+                  context.read<RecipesListCubit>().resetFilters();
+                  Navigator.pop(context);
+                },
+                child: const Text("Сбросить"),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

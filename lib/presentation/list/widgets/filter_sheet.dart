@@ -4,7 +4,7 @@ import '../../list/cubit/recipes_list_cubit.dart';
 import '../../list/cubit/recipes_list_state.dart';
 
 class FilterSheet extends StatefulWidget {
-  const FilterSheet();
+  const FilterSheet({super.key});
 
   @override
   State<FilterSheet> createState() => FilterSheetState();

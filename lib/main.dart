@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:recipes_app/presentation/list/cubit/recipes_list_cubit.dart';
+import 'package:recipes_app/presentation/theme/theme_cubit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:recipes_app/data/datasources/recipes_api.dart';
@@ -29,6 +30,7 @@ void main() async {
           create: (_) =>
               RecipesListCubit(repository: repository, interactor: interactor),
         ),
+        BlocProvider(create: (_) => ThemeCubit()..loadTheme()),
       ],
       child: MyApp(),
     ),
@@ -36,8 +38,19 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(routerConfig: appRouter);
+    return BlocBuilder<ThemeCubit, bool>(
+      builder: (context, isDark) {
+        return MaterialApp.router(
+          routerConfig: appRouter,
+          theme: ThemeData.light(),
+          darkTheme: ThemeData.dark(),
+          themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+        );
+      },
+    );
   }
 }

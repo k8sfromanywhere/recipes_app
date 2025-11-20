@@ -5,6 +5,7 @@ import 'package:recipes_app/presentation/list/cubit/recipes_list_cubit.dart';
 import 'package:recipes_app/presentation/list/cubit/recipes_list_state.dart';
 import 'package:recipes_app/presentation/list/widgets/error_retry.dart';
 import 'package:recipes_app/presentation/list/widgets/recipe_card.dart';
+import 'package:recipes_app/presentation/theme/theme_cubit.dart';
 
 class RecipesListScreen extends StatefulWidget {
   const RecipesListScreen({super.key});
@@ -38,7 +39,21 @@ class _RecipesListScreenState extends State<RecipesListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Рецепты')),
+      appBar: AppBar(
+        title: const Text('Рецепты'),
+        actions: [
+          IconButton(
+            onPressed: () {
+              context.read<ThemeCubit>().toggleTheme();
+            },
+            icon: Icon(
+              context.watch<ThemeCubit>().state
+                  ? Icons.dark_mode
+                  : Icons.light_mode,
+            ),
+          ),
+        ],
+      ),
       body: BlocBuilder<RecipesListCubit, RecipesListState>(
         builder: (context, state) {
           return switch (state) {

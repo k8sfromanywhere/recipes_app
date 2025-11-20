@@ -30,10 +30,13 @@ class RecipesListCubit extends Cubit<RecipesListState> {
     emit(const RecipesLoading());
 
     try {
-      final data = await _repository.loadRecipes();
+      final remote = await _repository.loadRecipes();
+      _raw = remote;
 
-      _raw = data;
-      _repository.saveCached(data);
+      // кешируем только если API дал валидный JSON
+      if (remote.isNotEmpty) {
+        await _repository.saveCached(remote);
+      }
 
       _applyAndEmit(_raw);
     } catch (e) {
@@ -41,10 +44,11 @@ class RecipesListCubit extends Cubit<RecipesListState> {
 
       if (cached.isNotEmpty) {
         _raw = cached;
-        emit(RecipesOffline(cached));
-      } else {
-        emit(RecipesError(e.toString()));
+        emit(RecipesOffline(cached)); // по ТЗ
+        return;
       }
+
+      emit(RecipesError("Сервер недоступен. Попробуйте позже."));
     }
   }
 
